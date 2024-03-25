@@ -66,7 +66,7 @@ struct Animal {
     }
 
     var canTouch: Bool {
-        distance <= AreaRadius
+        distance <= AREA_RADIUS
     }
     var distance: Double {
         LocationDataManager.shared.currentCoordinator.distance(from: self.location)

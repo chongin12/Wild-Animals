@@ -33,8 +33,8 @@ struct HomeView: View {
                     AnimalAnnotation(animal)
                         .tag(animal.id)
 
-                    MapCircle(center: animal.location, radius: AreaRadius)
-                        .foregroundStyle(distanceOfCurrent <= AreaRadius ? .blue.opacity(0.15) : .orange.opacity(0.15))
+                    MapCircle(center: animal.location, radius: AREA_RADIUS)
+                        .foregroundStyle(distanceOfCurrent <= AREA_RADIUS ? .blue.opacity(0.15) : .orange.opacity(0.15))
                 }
 
             }
@@ -177,6 +177,9 @@ struct HomeView: View {
                 }
                 .offset(y: -42)
                 .scaleEffect(selection == animal.id ? 1.5 : 1.0)
+                .onTapGesture {
+                    selection = animal.id
+                }
 
                 Image(systemName: "circle.fill")
                     .resizable()
@@ -184,22 +187,24 @@ struct HomeView: View {
                     .padding()
 
                 if selection == animal.id {
-                    HStack(spacing: 8) {
+                    VStack(spacing: 8) {
                         Text(" \(animal.name) ")
-                        VStack {
-                            Label("\(animal.food)", systemImage: "popcorn.fill")
-                            Label("\(animal.pat)", systemImage: "hand.wave.fill")
-                        }
+                        Label("\(animal.food)", systemImage: "popcorn.fill")
+                            .fontWeight(.light)
+                        Label("\(animal.pat)", systemImage: "hand.wave.fill")
+                            .fontWeight(.light)
                     }
                     .padding(8)
+                    .frame(minWidth: 40)
                     .foregroundStyle(.white)
                     .background {
                         RoundedRectangle(cornerRadius: 10.0, style: .continuous)
                             .fill(Color.gray.opacity(0.6))
                     }
-                    .offset(y: 44)
+                    .offset(y: 60)
                 }
             }
+            .frame(minWidth: 60, minHeight: 100, alignment: .bottom)
             .animation(.smooth(duration: 0.5), value: selection)
             .transition(.identity)
         }

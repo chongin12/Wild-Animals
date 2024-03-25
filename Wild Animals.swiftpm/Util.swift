@@ -25,9 +25,9 @@ extension CLLocationCoordinate2D: Equatable {
     }
 }
 
-let AreaRadius = 50.0 // 동물 인식 범위
+let AREA_RADIUS = 50.0 // 동물 인식 범위
 
-let GestureVelocityThreshold: CGFloat = 10000
+let GESTURE_VELOCITY_THRESHOLD: CGFloat = 10000 // Drag의 이동 값이 10000이 넘어야 1 pat으로 침.
 
 func random() -> CGFloat {
     return CGFloat(Float(arc4random()) / Float(0xFFFFFFFF))

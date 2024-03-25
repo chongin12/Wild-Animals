@@ -11,6 +11,7 @@ import SpriteKit
 struct DetailView: View {
     @State private var gestureAmount: CGFloat = 0.0
     @Binding var animal: Animal
+    @State private var patCount: Int = 0
     @State private var gameScene = DetailGameScene()
     var body: some View {
         GeometryReader { proxy in
@@ -61,10 +62,10 @@ struct DetailView: View {
                     let velocityHeight = abs(gesture.velocity.height)
                     let moveAmount = sqrt(velocityWidth * velocityWidth + velocityHeight * velocityHeight)
                     gestureAmount += moveAmount
-                    print("gestureAmount : \(gestureAmount)")
-                    if gestureAmount >= GestureVelocityThreshold {
-                        gestureAmount -= GestureVelocityThreshold
+                    if gestureAmount >= GESTURE_VELOCITY_THRESHOLD {
+                        gestureAmount -= GESTURE_VELOCITY_THRESHOLD
                         animal.patIncrement()
+                        gameScene.heartEffect(at: gesture.location)
                     }
                 }
         )
