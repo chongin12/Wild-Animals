@@ -42,6 +42,17 @@ struct Animal {
                 1.0
             }
         }
+
+        var description: String {
+            switch self {
+            case .small:
+                "갓 태어난"
+            case .medium:
+                "부모로부터 독립할 때가 된"
+            case .big:
+                "다 큰"
+            }
+        }
     }
 
     var growth: Growth {
@@ -55,10 +66,20 @@ struct Animal {
     }
 
     var canTouch: Bool {
-        distance <= 10
+        distance <= AreaRadius
     }
     var distance: Double {
         LocationDataManager.shared.currentCoordinator.distance(from: self.location)
+    }
+
+    @MainActor
+    public mutating func foodIncrement() {
+        self.food += 1
+    }
+
+    @MainActor
+    public mutating func patIncrement() {
+        self.pat += 1
     }
 }
 

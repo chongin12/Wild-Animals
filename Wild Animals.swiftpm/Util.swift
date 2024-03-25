@@ -24,3 +24,11 @@ extension CLLocationCoordinate2D: Equatable {
         lhs.latitude == rhs.latitude && lhs.longitude == rhs.longitude
     }
 }
+
+let AreaRadius = 50.0 // 동물 인식 범위
+
+let GestureVelocityThreshold: CGFloat = 10000
+
+func random() -> CGFloat {
+    return CGFloat(Float(arc4random()) / Float(0xFFFFFFFF))
+}

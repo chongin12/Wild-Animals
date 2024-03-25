@@ -24,7 +24,6 @@ class LocationDataManager: NSObject {
         }
     }
 
-
     override init() {
         super.init()
         locationManager.delegate = self

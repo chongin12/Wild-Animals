@@ -6,7 +6,6 @@ extension PresentationDetent {
     static var animalMedium = Self.fraction(0.3)
 }
 
-
 struct HomeView: View {
     @Environment(LocationDataManager.self) private var locationDataManager
     @Environment(AnimalStorage.self) private var animalStorage
@@ -20,40 +19,22 @@ struct HomeView: View {
 
     @State private var path: NavigationPath = .init()
 
+    @State private var selection: String?
+
     var body: some View {
         NavigationStack(path: $path) {
-            Map(position: $position) {
+            Map(position: $position, selection: $selection) {
                 UserAnnotation()
                 @Bindable var animalStorage = animalStorage
                 ForEach(animalStorage.animals) { animal in
                     var distanceOfCurrent: Double {
                         self.locationDataManager.currentCoordinator.distance(from: animal.location)
                     }
-                    Annotation(String(distanceOfCurrent), coordinate: animal.location) {
-                        ZStack {
-                            Group {
-                                Circle()
-                                    .fill(.background)
-                                Circle()
-                                    .stroke(animal.canTouch ? .blue : .secondary, lineWidth: 5)
-                                Image(animal.imageString)
-                                    .resizable()
-                                    .frame(width: 45, height: 45)
-                                    .clipShape(Circle())
-                                    .padding(5)
-                            }
-                            .offset(y: -42)
+                    AnimalAnnotation(animal)
+                        .tag(animal.id)
 
-                            Image(systemName: "circle.fill")
-                                .resizable()
-                                .frame(width: 8, height: 8)
-                                .padding()
-                        }
-                    }
-                    .annotationTitles(.hidden)
-
-                    MapCircle(center: animal.location, radius: 10)
-                        .foregroundStyle(distanceOfCurrent <= 10 ? .blue.opacity(0.15) : .orange.opacity(0.15))
+                    MapCircle(center: animal.location, radius: AreaRadius)
+                        .foregroundStyle(distanceOfCurrent <= AreaRadius ? .blue.opacity(0.15) : .orange.opacity(0.15))
                 }
 
             }
@@ -62,7 +43,6 @@ struct HomeView: View {
                 MapUserLocationButton()
             }
             .navigationDestination(for: Animal.self) { animal in
-
                 DetailView(animal: Binding<Animal>(get: {
                     animalStorage.animals.filter { $0.id == animal.id }[0]
                 }, set: { animal in
@@ -84,6 +64,7 @@ struct HomeView: View {
             }
         }
         .animation(.easeInOut, value: detent)
+        .animation(.bouncy, value: selection)
         .transition(.identity)
         .onChange(of: path.count, {
             print("path changed : \(path.count)")
@@ -97,6 +78,17 @@ struct HomeView: View {
         .onChange(of: locationDataManager.currentCoordinator, { // 이거 없으면 작동 안함 주의!!
             print("currentCoordinator : \(locationDataManager.currentCoordinator)")
         })
+        .onChange(of: selection) {
+            withAnimation(.smooth(duration: 3.5)) {
+                if let location: CLLocationCoordinate2D = self.animalStorage.animals.filter({ $0.id == selection }).first?.location {
+                    let region = MKCoordinateRegion(center: location, span: MKCoordinateSpan(latitudeDelta: 0.003, longitudeDelta: 0.003))
+                    position = .region(region)
+                }
+            }
+        }
+        .onAppear {
+            self.selection = nil
+        }
     }
 
     @ViewBuilder
@@ -126,8 +118,8 @@ struct HomeView: View {
                 Spacer()
                 Image(animalStorage.currentAnimal?.imageString ?? "")
                     .resizable()
+                    .scaledToFit()
                     .frame(minWidth: 40, minHeight: 40)
-                    .aspectRatio(contentMode: .fit)
             }
             HStack {
                 AnimalSummaryAdditionView()
@@ -164,6 +156,52 @@ struct HomeView: View {
                 Text("아무 동물도 없네요..")
             }
         }
+    }
+
+    private func AnimalAnnotation(_ animal: Animal) -> some MapContent {
+        Annotation(animal.name, coordinate: animal.location) {
+            ZStack {
+                Group {
+                    Circle()
+                        .fill(.background)
+                    Circle()
+                        .stroke(animal.canTouch ? .blue : .secondary, lineWidth: 4)
+                    Image(animal.imageString)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 45, height: 45)
+                        .clipShape(Circle())
+                        .padding(5)
+                }
+                .offset(y: -42)
+                .scaleEffect(selection == animal.id ? 1.5 : 1.0)
+
+                Image(systemName: "circle.fill")
+                    .resizable()
+                    .frame(width: 8, height: 8)
+                    .padding()
+
+                if selection == animal.id {
+                    HStack(spacing: 8) {
+                        Text(" \(animal.name) ")
+                        VStack {
+                            Label("\(animal.food)", systemImage: "popcorn.fill")
+                            Label("\(animal.pat)", systemImage: "hand.wave.fill")
+                        }
+                    }
+                    .padding(8)
+                    .foregroundStyle(.white)
+                    .background {
+                        RoundedRectangle(cornerRadius: 10.0, style: .continuous)
+                            .fill(Color.gray.opacity(0.6))
+                    }
+                    .offset(y: 44)
+                }
+            }
+            .animation(.smooth(duration: 0.5), value: selection)
+            .transition(.identity)
+        }
+        .annotationTitles(.hidden)
     }
 }
 
