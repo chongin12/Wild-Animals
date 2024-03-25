@@ -81,6 +81,12 @@ struct Animal {
     public mutating func patIncrement() {
         self.pat += 1
     }
+
+    @MainActor
+    public mutating func reset() {
+        self.food = 0
+        self.pat = 0
+    }
 }
 
 extension Animal: Identifiable, Hashable {

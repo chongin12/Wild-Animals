@@ -120,6 +120,7 @@ struct HomeView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(minWidth: 40, minHeight: 40)
+                    .scaleEffect(1.5)
             }
             HStack {
                 AnimalSummaryAdditionView()
@@ -170,6 +171,7 @@ struct HomeView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 45, height: 45)
+                        .scaleEffect(1.5)
                         .clipShape(Circle())
                         .padding(5)
                 }
