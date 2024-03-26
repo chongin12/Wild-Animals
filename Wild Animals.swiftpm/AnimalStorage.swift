@@ -7,24 +7,31 @@
 
 import Foundation
 import MapKit
+import SwiftData
 
-struct Animal {
+@Model final class Animal {
     var name: String
     var imageString: String
     var location: CLLocationCoordinate2D
-    private(set) var food: Int = 0 {
+    var food: Int = 0 {
         didSet {
             if food > 1000 {
                 food = 999
             }
         }
     }
-    private(set) var pat: Int = 0 {
+    var pat: Int = 0 {
         didSet {
             if pat > 1000 {
                 pat = 999
             }
         }
+    }
+
+    init(name: String, imageString: String, location: CLLocationCoordinate2D) {
+        self.name = name
+        self.imageString = imageString
+        self.location = location
     }
 
     enum Growth {
@@ -73,23 +80,24 @@ struct Animal {
     }
 
     @MainActor
-    public mutating func foodIncrement() {
+    public func foodIncrement() {
         self.food += 1
     }
 
     @MainActor
-    public mutating func patIncrement() {
+    public func patIncrement() {
         self.pat += 1
     }
 
     @MainActor
-    public mutating func reset() {
+    public func reset() {
         self.food = 0
         self.pat = 0
     }
 }
 
 extension Animal: Identifiable, Hashable {
+    @Transient
     var id: String {
         self.name
     }
@@ -102,32 +110,6 @@ extension Animal: Identifiable, Hashable {
 extension Animal {
     func distance(of coordinator: CLLocationCoordinate2D) -> Double {
         return coordinator.distance(from: self.location)
-    }
-}
-
-@Observable
-class AnimalStorage: NSObject {
-    var animals: [Animal]
-
-    var currentAnimal: Animal? {
-        get {
-            self.animals.min { animal1, animal2 in
-                LocationDataManager.shared.currentCoordinator.distance(from: animal1.location) < LocationDataManager.shared.currentCoordinator.distance(from: animal2.location)
-            }
-        }
-        set {
-            self.animals = self.animals.compactMap { animal in
-                if newValue?.id == animal.id {
-                    return currentAnimal
-                } else {
-                    return animal
-                }
-            }
-        }
-    }
-
-    init(animals: [Animal] = .mockData) {
-        self.animals = animals
     }
 }
 

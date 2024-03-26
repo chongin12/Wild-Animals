@@ -1,5 +1,6 @@
 import SwiftUI
 import MapKit
+import SwiftData
 
 extension PresentationDetent {
     static var animalSmall = Self.fraction(0.1)
@@ -8,7 +9,13 @@ extension PresentationDetent {
 
 struct HomeView: View {
     @Environment(LocationDataManager.self) private var locationDataManager
-    @Environment(AnimalStorage.self) private var animalStorage
+    @Environment(\.modelContext) private var modelContext
+    @Query private var animals: [Animal]
+    var currentAnimal: Animal? {
+        self.animals.min { animal1, animal2 in
+            LocationDataManager.shared.currentCoordinator.distance(from: animal1.location) < LocationDataManager.shared.currentCoordinator.distance(from: animal2.location)
+        }
+    }
 
     @State private var position: MapCameraPosition = .userLocation(followsHeading: true, fallback: .automatic)
     @State private var isPresented: Bool = true
@@ -25,8 +32,7 @@ struct HomeView: View {
         NavigationStack(path: $path) {
             Map(position: $position, selection: $selection) {
                 UserAnnotation()
-                @Bindable var animalStorage = animalStorage
-                ForEach(animalStorage.animals) { animal in
+                ForEach(animals) { animal in
                     var distanceOfCurrent: Double {
                         self.locationDataManager.currentCoordinator.distance(from: animal.location)
                     }
@@ -36,24 +42,18 @@ struct HomeView: View {
                     MapCircle(center: animal.location, radius: AREA_RADIUS)
                         .foregroundStyle(distanceOfCurrent <= AREA_RADIUS ? .blue.opacity(0.15) : .orange.opacity(0.15))
                 }
-
             }
             .mapStyle(.standard(elevation: .realistic))
             .mapControls {
                 MapUserLocationButton()
             }
             .navigationDestination(for: Animal.self) { animal in
-                DetailView(animal: Binding<Animal>(get: {
-                    animalStorage.animals.filter { $0.id == animal.id }[0]
+                let animalBinding: Binding<Animal> = Binding<Animal>(get: {
+                    animals.filter { $0.id == animal.id }[0]
                 }, set: { animal in
-                    animalStorage.animals = animalStorage.animals.map {
-                        if animal.id == $0.id {
-                            return animal
-                        } else {
-                            return $0
-                        }
-                    }
-                }))
+                    modelContext.insert(animal)
+                })
+                DetailView(animal: animalBinding)
             }
             .sheet(isPresented: $isPresented) {
                 AnimalSummaryView()
@@ -80,7 +80,7 @@ struct HomeView: View {
         })
         .onChange(of: selection) {
             withAnimation(.smooth(duration: 3.5)) {
-                if let location: CLLocationCoordinate2D = self.animalStorage.animals.filter({ $0.id == selection }).first?.location {
+                if let location: CLLocationCoordinate2D = self.animals.filter({ $0.id == selection }).first?.location {
                     let region = MKCoordinateRegion(center: location, span: MKCoordinateSpan(latitudeDelta: 0.003, longitudeDelta: 0.003))
                     position = .region(region)
                 }
@@ -112,11 +112,11 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("가장 가까운 동물")
                         .font(.body)
-                    Text("\(animalStorage.currentAnimal?.name ?? "") 📍 \(Int(animalStorage.currentAnimal?.distance ?? 0))m")
+                    Text("\(currentAnimal?.name ?? "") 📍 \(Int(currentAnimal?.distance ?? 0))m")
                         .font(.title)
                 }
                 Spacer()
-                Image(animalStorage.currentAnimal?.imageString ?? "")
+                Image(currentAnimal?.imageString ?? "")
                     .resizable()
                     .scaledToFit()
                     .frame(minWidth: 40, minHeight: 40)
@@ -133,7 +133,7 @@ struct HomeView: View {
     @ViewBuilder
     private func AnimalSummaryAdditionView() -> some View {
         VStack(spacing: 16) {
-            if let currentAnimal = animalStorage.currentAnimal {
+            if let currentAnimal = currentAnimal {
                 if currentAnimal.canTouch {
                     Text("주변에 있어요!")
                         .font(.title3)

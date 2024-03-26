@@ -75,5 +75,4 @@ struct DetailView: View {
 
 #Preview {
     DetailView(animal: .constant(.mockData))
-        .environment(AnimalStorage())
 }

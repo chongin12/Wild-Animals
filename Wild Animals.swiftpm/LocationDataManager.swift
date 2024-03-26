@@ -71,8 +71,6 @@ extension LocationDataManager: CLLocationManagerDelegate {
     }
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        print("location Update!")
-        print("location : \(manager.location?.coordinate)")
         self.locationManager = manager
     }
 
