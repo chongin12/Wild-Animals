@@ -52,3 +52,11 @@ let GESTURE_VELOCITY_THRESHOLD: CGFloat = 10000 // Drag의 이동 값이 10000�
 func random() -> CGFloat {
     return CGFloat(Float(arc4random()) / Float(0xFFFFFFFF))
 }
+
+import SwiftUI
+
+extension Image {
+    init(_ data: Data) {
+        self.init(uiImage: UIImage(data: data) ?? UIImage())
+    }
+}

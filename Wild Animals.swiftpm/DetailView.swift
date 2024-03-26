@@ -17,7 +17,7 @@ struct DetailView: View {
         GeometryReader { proxy in
             ZStack {
                 VStack {
-                    Image(animal.imageString)
+                    Image(animal.imageData)
                         .resizable()
                         .scaledToFit()
                         .padding()
@@ -34,6 +34,7 @@ struct DetailView: View {
                         Text("쓰담 : \(animal.pat)")
                         Spacer()
                     }
+                    .padding()
                 }
 
                 SpriteView(scene: gameScene, options: [.allowsTransparency])
@@ -73,6 +74,6 @@ struct DetailView: View {
     }
 }
 
-#Preview {
-    DetailView(animal: .constant(.mockData))
-}
+//#Preview {
+//    DetailView(animal: .constant(.mockData))
+//}

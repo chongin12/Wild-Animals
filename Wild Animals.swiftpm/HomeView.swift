@@ -30,37 +30,43 @@ struct HomeView: View {
 
     var body: some View {
         NavigationStack(path: $path) {
-            Map(position: $position, selection: $selection) {
-                UserAnnotation()
-                ForEach(animals) { animal in
-                    var distanceOfCurrent: Double {
-                        self.locationDataManager.currentCoordinator.distance(from: animal.location)
-                    }
-                    AnimalAnnotation(animal)
-                        .tag(animal.id)
+            ZStack(alignment: .topLeading) {
+                Map(position: $position, selection: $selection) {
+                    UserAnnotation()
+                    ForEach(animals) { animal in
+                        var distanceOfCurrent: Double {
+                            self.locationDataManager.currentCoordinator.distance(from: animal.location)
+                        }
+                        AnimalAnnotation(animal)
+                            .tag(animal.id)
 
-                    MapCircle(center: animal.location, radius: AREA_RADIUS)
-                        .foregroundStyle(distanceOfCurrent <= AREA_RADIUS ? .blue.opacity(0.15) : .orange.opacity(0.15))
+                        MapCircle(center: animal.location, radius: AREA_RADIUS)
+                            .foregroundStyle(distanceOfCurrent <= AREA_RADIUS ? .blue.opacity(0.15) : .orange.opacity(0.15))
+                    }
                 }
-            }
-            .mapStyle(.standard(elevation: .realistic))
-            .mapControls {
-                MapUserLocationButton()
-            }
-            .navigationDestination(for: Animal.self) { animal in
-                let animalBinding: Binding<Animal> = Binding<Animal>(get: {
-                    animals.filter { $0.id == animal.id }[0]
-                }, set: { animal in
-                    modelContext.insert(animal)
-                })
-                DetailView(animal: animalBinding)
-            }
-            .sheet(isPresented: $isPresented) {
-                AnimalSummaryView()
-                    .presentationDetents([.animalSmall, .animalMedium], selection: $detent)
-                    .presentationDragIndicator(.visible)
-                    .presentationBackgroundInteraction(.enabled(upThrough: .animalSmall))
-                    .interactiveDismissDisabled(true)
+                .mapStyle(.standard(elevation: .realistic))
+                .mapControls {
+                    MapUserLocationButton()
+                }
+                .navigationDestination(for: Animal.self) { animal in
+                    let animalBinding: Binding<Animal> = Binding<Animal>(get: {
+                        animals.filter { $0.id == animal.id }[0]
+                    }, set: { animal in
+                        modelContext.insert(animal)
+                    })
+                    DetailView(animal: animalBinding)
+                }
+                .sheet(isPresented: $isPresented) {
+                    AnimalSummaryView()
+                        .presentationDetents([.animalSmall, .animalMedium], selection: $detent)
+                        .presentationDragIndicator(.visible)
+                        .presentationBackgroundInteraction(.enabled(upThrough: .animalSmall))
+                        .interactiveDismissDisabled(true)
+                }
+
+                AnimalAddView()
+                    .padding(4)
+                    .padding(.top, 2)
             }
         }
         .animation(.easeInOut, value: detent)
@@ -88,6 +94,18 @@ struct HomeView: View {
         }
         .onAppear {
             self.selection = nil
+//            addMockData()
+        }
+    }
+
+    private func addMockData() {
+        do {
+            try modelContext.delete(model: Animal.self)
+        } catch {
+            print("Error! \(error.localizedDescription)")
+        }
+        [Animal].mockData.forEach { animal in
+            modelContext.insert(animal)
         }
     }
 
@@ -116,7 +134,7 @@ struct HomeView: View {
                         .font(.title)
                 }
                 Spacer()
-                Image(currentAnimal?.imageString ?? "")
+                Image(currentAnimal?.imageData ?? Data())
                     .resizable()
                     .scaledToFit()
                     .frame(minWidth: 40, minHeight: 40)
@@ -167,7 +185,7 @@ struct HomeView: View {
                         .fill(.background)
                     Circle()
                         .stroke(animal.canTouch ? .blue : .secondary, lineWidth: 4)
-                    Image(animal.imageString)
+                    Image(animal.imageData)
                         .resizable()
                         .scaledToFit()
                         .frame(width: 45, height: 45)
@@ -209,6 +227,49 @@ struct HomeView: View {
             .transition(.identity)
         }
         .annotationTitles(.hidden)
+    }
+
+    @State private var isAddingAnimal: Bool = false
+
+    @ViewBuilder
+    private func AnimalAddView() -> some View {
+        VStack(alignment: .leading) {
+            if isAddingAnimal {
+                HStack {
+                    Button(action: {
+                        isAddingAnimal.toggle()
+                    }, label: {
+                        Image(systemName: "x.square.fill")
+                            .resizable()
+                            .frame(maxWidth: 42, maxHeight: 42)
+                    })
+                    .tint(.red)
+                    Button(action: {
+                        isAddingAnimal.toggle()
+                    }, label: {
+                        Image(systemName: "checkmark.square.fill")
+                            .resizable()
+                            .frame(maxWidth: 42, maxHeight: 42)
+                    })
+                    .tint(.green)
+                }
+
+            } else {
+                Button(action: {
+                    isAddingAnimal.toggle()
+                }, label: {
+                    Image(systemName: "plus.square.fill")
+                        .resizable()
+                        .frame(maxWidth: 42, maxHeight: 42)
+                })
+                .tint(.black)
+            }
+        }
+        .animation(.bouncy, value: isAddingAnimal)
+        .transition(.identity)
+        .background(.background)
+        .clipShape(RoundedRectangle(cornerRadius: 5))
+        .shadow(radius: 4)
     }
 }
 

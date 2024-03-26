@@ -10,8 +10,12 @@ import MapKit
 import SwiftData
 
 @Model final class Animal {
+    var id: String
     var name: String
-    var imageString: String
+
+    @Attribute(.externalStorage)
+    var imageData: Data
+    
     var location: CLLocationCoordinate2D
     var food: Int = 0 {
         didSet {
@@ -28,9 +32,10 @@ import SwiftData
         }
     }
 
-    init(name: String, imageString: String, location: CLLocationCoordinate2D) {
+    init(name: String, imageData: Data, location: CLLocationCoordinate2D) {
+        self.id = UUID().uuidString
         self.name = name
-        self.imageString = imageString
+        self.imageData = imageData
         self.location = location
     }
 
@@ -97,13 +102,9 @@ import SwiftData
 }
 
 extension Animal: Identifiable, Hashable {
-    @Transient
-    var id: String {
-        self.name
-    }
 
     func hash(into hasher: inout Hasher) {
-        hasher.combine(self.name)
+        hasher.combine(self.id)
     }
 }
 
@@ -115,19 +116,19 @@ extension Animal {
 
 extension Animal {
     static var mockData: Animal {
-        Animal(name: "고양이", imageString: "cat", location: .cat)
+        Animal(name: "고양이", imageData: UIImage(named: "cat")?.pngData() ?? Data(), location: .cat)
     }
 }
 
 extension Collection where Element == Animal {
     static var mockData: [Animal] { 
         [
-            Animal(name: "고양이", imageString: "cat", location: .cat),
-            Animal(name: "강아지", imageString: "dog", location: .dog),
-            Animal(name: "호랑이", imageString: "tiger", location: .tiger),
-            Animal(name: "판다", imageString: "panda", location: .panda),
-            Animal(name: "토끼", imageString: "rabbit", location: .rabbit),
-            Animal(name: "햄스터", imageString: "hamster", location: .hamster),
+            Animal(name: "고양이", imageData: UIImage(named: "cat")?.pngData() ?? Data(), location: .cat),
+            Animal(name: "강아지", imageData: UIImage(named: "dog")?.pngData() ?? Data(), location: .dog),
+            Animal(name: "호랑이", imageData: UIImage(named: "tiger")?.pngData() ?? Data(), location: .tiger),
+            Animal(name: "판다", imageData: UIImage(named: "panda")?.pngData() ?? Data(), location: .panda),
+            Animal(name: "토끼", imageData: UIImage(named: "rabbit")?.pngData() ?? Data(), location: .rabbit),
+            Animal(name: "햄스터", imageData: UIImage(named: "hamster")?.pngData() ?? Data(), location: .hamster),
         ]
     }
 }
