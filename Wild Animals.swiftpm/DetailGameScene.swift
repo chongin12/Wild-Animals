@@ -56,6 +56,7 @@ final class DetailGameScene: SKScene {
         node.physicsBody?.isDynamic = true // 물리 엔진의 영향을 받게 함
         node.physicsBody?.affectedByGravity = true
         node.physicsBody?.allowsRotation = true // 노드가 회전할 수 있도록 함
+        node.physicsBody?.mass = 3 // 질량 3kg
 
         // 발사 속도와 방향 설정
         let randomXVelocity = CGFloat.random(in: -width*0.5...width*0.5) // 좌우 방향 속도
@@ -89,6 +90,11 @@ final class DetailGameScene: SKScene {
         let side: CGFloat = width * 0.10
         patNode.size = CGSize(width: side, height: side)
         patNode.position = CGPoint(x: width * 0.9, y: height * 0.1)
+        patNode.physicsBody = SKPhysicsBody(circleOfRadius: side / 2)
+        patNode.physicsBody?.isDynamic = false // 물리 엔진의 영향을 받게 함
+        patNode.physicsBody?.affectedByGravity = false
+        patNode.physicsBody?.allowsRotation = false // 노드가 회전할 수 있도록 함
+        patNode.physicsBody?.mass = 50 // 질량 50kg
 
         addChild(patNode)
     }
