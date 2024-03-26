@@ -11,7 +11,6 @@ import SpriteKit
 struct DetailView: View {
     @State private var gestureAmount: CGFloat = 0.0
     @Binding var animal: Animal
-    @State private var patCount: Int = 0
     @State private var gameScene = DetailGameScene()
     var body: some View {
         GeometryReader { proxy in
@@ -39,7 +38,6 @@ struct DetailView: View {
 
                 SpriteView(scene: gameScene, options: [.allowsTransparency])
             }
-            .animation(.snappy, value: animal.food)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {

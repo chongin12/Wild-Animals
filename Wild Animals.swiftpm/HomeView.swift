@@ -1,6 +1,7 @@
 import SwiftUI
 import MapKit
 import SwiftData
+import PhotosUI
 
 extension PresentationDetent {
     static var animalSmall = Self.fraction(0.1)
@@ -230,6 +231,7 @@ struct HomeView: View {
     }
 
     @State private var isAddingAnimal: Bool = false
+    @State private var addImageSelection: PhotosPickerItem?
 
     @ViewBuilder
     private func AnimalAddView() -> some View {
@@ -261,6 +263,9 @@ struct HomeView: View {
                     Image(systemName: "plus.square.fill")
                         .resizable()
                         .frame(maxWidth: 42, maxHeight: 42)
+                        .onLongPressGesture {
+                            addMockData()
+                        }
                 })
                 .tint(.black)
             }
@@ -270,6 +275,28 @@ struct HomeView: View {
         .background(.background)
         .clipShape(RoundedRectangle(cornerRadius: 5))
         .shadow(radius: 4)
+    }
+
+    @ViewBuilder
+    private func ImagePickerView() -> some View {
+        if let selection = self.addImageSelection {
+            
+        } else {
+            Image(systemName: "")
+        }
+        Image(Data())
+            .scaledToFill()
+            .clipShape(Circle())
+            .frame(width: 100, height: 100)
+            .background {
+                Circle().fill(
+                    LinearGradient(
+                        colors: [.yellow, .orange],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+            }
     }
 }
 
