@@ -28,8 +28,8 @@ final class DetailGameScene: SKScene {
         makePat()
     }
 
-    public func popcornEffect() {
-        addPopcorn()
+    public func foodEffect() {
+        addFood()
     }
 
     public func patEffect(at point: CGPoint) {
@@ -43,22 +43,7 @@ final class DetailGameScene: SKScene {
         addHeart(at: convertedPoint)
     }
 
-    private func addHeart(at point: CGPoint) {
-        let node = SKSpriteNode(imageNamed: "heart.png")
-        let side: CGFloat = width * 0.05
-        node.size = CGSize(width: side, height: side)
-        node.position = point
-        addChild(node)
-
-        let moveUpAction = SKAction.moveBy(x: 0, y: 500, duration: 2)
-        let fadeOutAction = SKAction.fadeOut(withDuration: 2)
-        let removeAction = SKAction.removeFromParent()
-        let sequenceAction = SKAction.sequence([SKAction.group([moveUpAction, fadeOutAction]), removeAction])
-
-        node.run(sequenceAction)
-    }
-
-    private func addPopcorn() {
+    private func addFood() {
         let node = SKSpriteNode(imageNamed: "popcorn.png")
         let nodeWidth: CGFloat = min(width, height) * 0.05
         let nodeHeight: CGFloat = nodeWidth * 1.618
@@ -110,5 +95,20 @@ final class DetailGameScene: SKScene {
 
     private func movePat(at point: CGPoint) {
         patNode.position = point
+    }
+
+    private func addHeart(at point: CGPoint) {
+        let node = SKSpriteNode(imageNamed: "heart.png")
+        let side: CGFloat = width * 0.05
+        node.size = CGSize(width: side, height: side)
+        node.position = point
+        addChild(node)
+
+        let moveUpAction = SKAction.moveBy(x: 0, y: 500, duration: 2)
+        let fadeOutAction = SKAction.fadeOut(withDuration: 2)
+        let removeAction = SKAction.removeFromParent()
+        let sequenceAction = SKAction.sequence([SKAction.group([moveUpAction, fadeOutAction]), removeAction])
+
+        node.run(sequenceAction)
     }
 }

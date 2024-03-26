@@ -52,7 +52,7 @@ struct DetailView: View {
         }
         .onTapGesture {
             animal.foodIncrement()
-            gameScene.popcornEffect()
+            gameScene.foodEffect()
         }
         .gesture(
             DragGesture()
