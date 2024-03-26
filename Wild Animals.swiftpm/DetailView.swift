@@ -9,6 +9,7 @@ import SwiftUI
 import SpriteKit
 
 struct DetailView: View {
+    @Environment(LocationDataManager.self) private var manager
     @State private var gestureAmount: CGFloat = 0.0
     @Binding var animal: Animal
     @State private var gameScene = DetailGameScene()

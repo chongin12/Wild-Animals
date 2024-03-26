@@ -4,8 +4,8 @@ import SwiftData
 import PhotosUI
 
 extension PresentationDetent {
-    static var animalSmall = Self.fraction(0.1)
-    static var animalMedium = Self.fraction(0.3)
+    static var animalSmall = Self.fraction(0.15)
+    static var animalMedium = Self.fraction(0.35)
 }
 
 struct HomeView: View {
@@ -27,7 +27,7 @@ struct HomeView: View {
 
     @State private var path: NavigationPath = .init()
 
-    @State private var selection: String?
+    @State private var selection: String? // animal.id
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -65,9 +65,16 @@ struct HomeView: View {
                         .interactiveDismissDisabled(true)
                 }
 
-                AnimalAddView()
-                    .padding(4)
-                    .padding(.top, 2)
+                VStack(spacing: 4) {
+                    AddAnimalView()
+                        .padding(4)
+                        .padding(.top, 2)
+
+                    if selection != nil && !isAddingAnimal {
+                        DeleteAnimalView()
+                            .padding(.horizontal, 4)
+                    }
+                }
             }
         }
         .animation(.easeInOut, value: detent)
@@ -82,9 +89,9 @@ struct HomeView: View {
                 }
             }
         })
-        .onChange(of: locationDataManager.currentCoordinator, { // 이거 없으면 작동 안함 주의!!
+        .onChange(of: locationDataManager.currentCoordinator) { // 이거 없으면 작동 안함 주의!!
             print("currentCoordinator : \(locationDataManager.currentCoordinator)")
-        })
+        }
         .onChange(of: selection) {
             withAnimation(.smooth(duration: 3.5)) {
                 if let location: CLLocationCoordinate2D = self.animals.filter({ $0.id == selection }).first?.location {
@@ -93,9 +100,18 @@ struct HomeView: View {
                 }
             }
         }
+        .onChange(of: isPhotosPickerPresenting) { oldValue, newValue in
+            isPresented = !newValue
+        }
         .onAppear {
             self.selection = nil
-//            addMockData()
+        }
+        .photosPicker(isPresented: $isPhotosPickerPresenting, selection: $addImageSelection, matching: .images)
+        .task(id: addImageSelection) {
+            // UIImage로 받는 이유 : HIEC 이미지로 가져왔을 때 orientation에 문제가 생기기 때문.
+            if let uiImage = try? await addImageSelection?.loadTransferable(type: UIImage.self)?.fixedOrientation {
+                animalImage = uiImage
+            }
         }
     }
 
@@ -138,8 +154,9 @@ struct HomeView: View {
                 Image(currentAnimal?.imageData ?? Data())
                     .resizable()
                     .scaledToFit()
-                    .frame(minWidth: 40, minHeight: 40)
+                    .frame(maxWidth: 40, maxHeight: 40)
                     .scaleEffect(1.5)
+                    .padding(.trailing)
             }
             HStack {
                 AnimalSummaryAdditionView()
@@ -230,24 +247,33 @@ struct HomeView: View {
         .annotationTitles(.hidden)
     }
 
+    // MARK: - Adding Animal
+
     @State private var isAddingAnimal: Bool = false
+    @State private var isPhotosPickerPresenting: Bool = false
     @State private var addImageSelection: PhotosPickerItem?
+    @State private var animalImage: UIImage?
+    @State private var animalName: String = ""
 
     @ViewBuilder
-    private func AnimalAddView() -> some View {
-        VStack(alignment: .leading) {
+    private func AddAnimalView() -> some View {
+        VStack(alignment: .center) {
             if isAddingAnimal {
                 HStack {
                     Button(action: {
                         isAddingAnimal.toggle()
+                        addImageSelection = nil
+                        animalImage = nil
                     }, label: {
                         Image(systemName: "x.square.fill")
                             .resizable()
                             .frame(maxWidth: 42, maxHeight: 42)
                     })
                     .tint(.red)
+                    Spacer()
                     Button(action: {
                         isAddingAnimal.toggle()
+                        validate()
                     }, label: {
                         Image(systemName: "checkmark.square.fill")
                             .resizable()
@@ -256,13 +282,30 @@ struct HomeView: View {
                     .tint(.green)
                 }
 
+                Spacer()
+
+                ImagePickerView()
+                    .padding()
+
+                Spacer()
+
+                TextField("이름", text: $animalName)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                    .onSubmit {
+                        validate()
+                    }
+                    .padding()
+                    .textFieldStyle(.roundedBorder)
+
             } else {
-                Button(action: {
-                    isAddingAnimal.toggle()
-                }, label: {
+                Button(action: {}, label: {
                     Image(systemName: "plus.square.fill")
                         .resizable()
                         .frame(maxWidth: 42, maxHeight: 42)
+                        .onTapGesture { // action에 넣으면 long press gesture가 씹힘.
+                            isAddingAnimal.toggle()
+                        }
                         .onLongPressGesture {
                             addMockData()
                         }
@@ -270,48 +313,61 @@ struct HomeView: View {
                 .tint(.black)
             }
         }
+        .frame(maxWidth: isAddingAnimal ? 150 : 42, maxHeight: isAddingAnimal ? 200 : 42)
         .animation(.bouncy, value: isAddingAnimal)
         .transition(.identity)
-        .background(.background)
+        .background(.background.opacity(0.8))
         .clipShape(RoundedRectangle(cornerRadius: 5))
         .shadow(radius: 4)
     }
 
     @ViewBuilder
     private func ImagePickerView() -> some View {
-        if let selection = self.addImageSelection {
-            
-        } else {
-            Image(systemName: "")
-        }
-        Image(Data())
-            .scaledToFill()
-            .clipShape(Circle())
-            .frame(width: 100, height: 100)
-            .background {
-                Circle().fill(
-                    LinearGradient(
-                        colors: [.yellow, .orange],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
+        Button {
+            isPhotosPickerPresenting.toggle()
+        } label: {
+            if let animalImage {
+                Image(uiImage: animalImage)
+                    .resizable()
+                    .scaledToFit()
+            } else {
+                Image(systemName: "photo.badge.plus")
+                    .symbolRenderingMode(.palette)
+                    .resizable()
+                    .scaledToFit()
+                    .buttonStyle(.borderedProminent)
             }
+        }
     }
-}
 
-extension MKCoordinateRegion {
-    func toCameraPosition() -> MapCameraPosition {
-        return .region(self)
+    private func validate() {
+        if let imageData = animalImage?.jpegData(compressionQuality: 0.2), animalName != "" {
+            let animal = Animal(
+                name: animalName,
+                imageData: imageData,
+                location: LocationDataManager.shared.currentCoordinator
+            )
+            modelContext.insert(animal)
+            self.selection = animal.id
+            animalName = ""
+            animalImage = nil
+            isAddingAnimal = false
+        }
     }
-}
 
-extension CLLocationCoordinate2D {
-//    static let C5 = Self(latitude: 36.01407851917902, longitude: 129.32582384219566)
-    static var cat = Self(latitude: 36.014423345211746, longitude: 129.32558167819457)
-    static var dog = Self(latitude: 36.01447215110666, longitude: 129.32503969659575)
-    static var tiger = Self(latitude: 36.017610689980785, longitude: 129.3220931144489)
-    static var panda = Self(latitude: 36.014086474244166, longitude: 129.32634253673842)
-    static var rabbit = Self(latitude: 36.01378138419845, longitude: 129.32627811663477)
-    static var hamster = Self(latitude: 36.01407851917902, longitude: 129.32582384219566)
+    // MARK: - Deleting Animal
+    @ViewBuilder
+    private func DeleteAnimalView() -> some View {
+        Button(action: {
+            if let selectedAnimal = animals.first(where: { $0.id == selection }) {
+                modelContext.delete(selectedAnimal)
+            }
+            selection = nil
+        }, label: {
+            Image(systemName: "minus.square.fill")
+                .resizable()
+                .frame(maxWidth: 42, maxHeight: 42)
+        })
+        .tint(.red)
+    }
 }

@@ -20,20 +20,17 @@ let package = Package(
             teamIdentifier: "SYZM4D2Z3D",
             displayVersion: "1.0",
             bundleVersion: "1",
-            appIcon: .placeholder(icon: .magicWand),
+            appIcon: .asset("AppIcon"),
             accentColor: .presetColor(.green),
             supportedDeviceFamilies: [
-                .pad,
                 .phone
             ],
             supportedInterfaceOrientations: [
-                .portrait,
-                .landscapeRight,
-                .landscapeLeft,
-                .portraitUpsideDown(.when(deviceFamilies: [.pad]))
+                .portrait
             ],
             capabilities: [
-                .locationWhenInUse(purposeString: "사용자의 위치를 기반으로 동물을 생성하기 때문에 위치 정보가 필요합니다.")
+                .locationWhenInUse(purposeString: "사용자의 위치를 기반으로 동물을 생성하기 때문에 위치 정보가 필요합니다."),
+                .photoLibraryAdd(purposeString: "현재 자신의 위치에 어떤 동물을 놓을지 동물의 이미지가 필요합니다.")
             ],
             appCategory: .games
         )

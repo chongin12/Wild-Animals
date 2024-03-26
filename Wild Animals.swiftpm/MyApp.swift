@@ -8,8 +8,7 @@ struct MyApp: App {
         WindowGroup {
             HomeView()
                 .environment(locationDataManager)
-                .modelContainer(for: Animal.self, inMemory: true)
+                .modelContainer(for: Animal.self)
         }
     }
 }
-
